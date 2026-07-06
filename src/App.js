@@ -1,7 +1,11 @@
+import Header from './components/Header.js';
+import Body from './components/Body.js';
+
 function App() {
   return (
     <div>
-      <h1 className="text-3xl font-bold underline">Hello World</h1>
+      <Header />
+      <Body />
     </div>
   );
 }
