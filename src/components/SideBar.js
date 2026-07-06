@@ -1,5 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 const Sidebar = () => {
   // useSelector is a hook that allows us to access the state from the store.
@@ -10,7 +11,7 @@ const Sidebar = () => {
   return (
     <div className="p-5 shadow-lg w-48">
       <ul>
-        <li>Home</li>
+        <Link to="/">Home</Link>
         <li>Demo</li>
         <li> Shorts</li>
         <li> Videos</li>
