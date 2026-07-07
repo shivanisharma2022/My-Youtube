@@ -1,15 +1,120 @@
 import React from "react";
 import { toggleMenu } from "../utils/appSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useRef, useState } from "react";
+import { YOUTUBE_SEARCH_API } from "../utils/constant";
+import { cacheResult } from "../utils/searchSlice";
 
 const Header = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchInputRef = useRef(null);
   const dispatch = useDispatch();
+
+  // for caching the results in redux store so that we don't make the api call again and again for the same search query
+  // Also debouncing is there along with the caching, so that we don't make the api call again and again for the same search query
+
+  // when we remove the search query from the input field, then no api call should be made
+
+  /**
+   *  searchCache = {
+   *     "iphone": ["iphone 11", "iphone 14"]
+   *  }
+   *  searchQuery = iphone
+   */
+
+  const searchCache = useSelector((store) => store.search);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchCache[searchQuery]) {
+        // if the search query is in the cache, then set the suggestions from the cache
+        setSuggestions(searchCache[searchQuery]);
+      } else {
+        // if the search query is not in the cache, then make the api call
+        getSearchSuggestions();
+      }
+    }, 200);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
+  const getSearchSuggestions = async () => {
+    if (!searchQuery.trim()) {
+      setSuggestions([]);
+      return;
+    }
+    console.log("API call - " + searchQuery);
+    const data = await fetch(YOUTUBE_SEARCH_API + searchQuery);
+    const json = await data.json();
+    setSuggestions(json[1] || []);
+
+    // update the cache, after making the api call when the search query is not in the cache
+    dispatch(cacheResult({ [searchQuery]: json[1] || [] }));
+  };
 
   const toggleMenuHandler = () => {
     dispatch(toggleMenu());
   };
+
+  // debouncing
+  // make an api call after every keystroke but if the difference between the 2 api calls is less than 200ms, then decline the api call
+
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     getSearchSuggestions();
+  //   }, 200);
+  //   return () => clearTimeout(timer);
+  // }, [searchQuery]);
+
+  // const getSearchSuggestions = async () => {
+  //   if (!searchQuery.trim()) {
+  //     setSuggestions([]);
+  //     return;
+  //   }
+  //   console.log("API call - " + searchQuery);
+  //   const data = await fetch(YOUTUBE_SEARCH_API + searchQuery);
+  //   const json = await data.json();
+  //   setSuggestions(json[1] || []);
+  // };
+
+  /**
+   * key i
+   * render the component
+   * useEffect hook is called
+   * start timer => make api call after 200ms
+   *
+   * key ip
+   * render the component
+   * useEffect hook is called
+   * start new timer => make api call after 200ms
+   *
+   * but if
+   * key - i is called before 200ms
+   * destroy the component(useEffect return is called to clear)
+   * re-render the component
+   * useEffect hook is called
+   * start new timer => make api call after 200ms
+   *
+   * if 200ms is passed and no new key is pressed, then automatically it makes the api call
+   */
+
+  // this is without debouncing, when api call is made after every keystroke
+  // useEffect(() => {
+  //   getSearchSuggestions();
+  // }, [searchQuery]);
+
+  // const getSearchSuggestions = async () => {
+  //   const data = await fetch(YOUTUBE_SEARCH_API + searchQuery);
+  //   const json = await data.json();
+  //   console.log(json);
+  // };
+
   return (
-    <div className="grid grid-flow-col p-5 m-2 shadow-lg">
+    <div className="sticky top-0 z-50 bg-white grid grid-flow-col p-5 m-2 shadow-lg">
       <div className="flex">
         <img
           onClick={() => toggleMenuHandler()}
@@ -24,14 +129,44 @@ const Header = () => {
         />
       </div>
       <div className="col-span-10 px-10">
-        <input
-          className="px-5 w-1/2 border border-gray-400 p-2 rounded-l-full text-md text-black font-bold"
-          type="text"
-          placeholder="Search"
-        />
-        <button className="border border-gray-400 px-5 py-2 rounded-r-full bg-gray-100">
-          🔍
-        </button>
+        <div className="relative">
+          <div>
+            <input
+              ref={searchInputRef}
+              className="px-5 w-1/2 border border-gray-400 p-2 rounded-l-full text-md text-black font-bold"
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+            />
+            <button className="border border-gray-400 px-5 py-2 rounded-r-full bg-gray-100">
+              🔍
+            </button>
+          </div>
+          {isSearchFocused && suggestions.length > 0 && (
+            <div
+              className="absolute top-full left-0 bg-white py-2 px-2 shadow-lg rounded-lg w-[42rem] border border-gray-100 z-50"
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <ul>
+                {suggestions.map((s) => (
+                  <li
+                    key={s}
+                    className="py-2 px-3 shadow-sm hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setSearchQuery(s);
+                      searchInputRef.current?.blur();
+                    }}
+                  >
+                    🔍 {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
       <div>
         <img
