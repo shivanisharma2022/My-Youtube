@@ -1,24 +1,38 @@
 import { Provider } from "react-redux";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import Body from "./components/Body";
 import Header from "./components/Header";
 import MainContainer from "./components/MainContainer";
 import WatchPage from "./components/WatchPage";
 import store from "./utils/appStore";
 
+const AppLayout = () => {
+  return (
+    <div>
+      <Header />
+      <Outlet />
+    </div>
+  );
+};
+
 const appRouter = createBrowserRouter([
   {
     path: "/",
-    element: <Body />,     // parent, as header and sidebar does not change on route change
-    children: [            // children, will go where outlet is placed as main container and watch page change on route change
+    element: <AppLayout />,
+    children: [
       {
-        path: "/",
-        element: <MainContainer />, 
+        element: <Body />,
+        children: [
+          {
+            index: true,
+            element: <MainContainer />,
+          },
+          {
+            path: "watch",
+            element: <WatchPage />,
+          },
+        ],
       },
-      {
-        path: "watch",
-        element: <WatchPage />,
-      }
     ],
   },
 ]);
@@ -26,10 +40,7 @@ const appRouter = createBrowserRouter([
 function App() {
   return (
     <Provider store={store}>
-      <div>
-        <Header />
-        <RouterProvider router={appRouter} />
-      </div>
+      <RouterProvider router={appRouter} />
     </Provider>
   );
 }

@@ -11,7 +11,7 @@ const Sidebar = () => {
   return (
     <div className="p-5 shadow-lg w-48">
       <ul>
-        <Link to="/">Home</Link>
+        <Link to="/" className="font-bold">Home</Link>
         <li>Demo</li>
         <li> Shorts</li>
         <li> Videos</li>
