@@ -4,6 +4,7 @@ import { closeMenu } from "../utils/appSlice";
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import CommentsContainer from "./CommentsContainer";
+import LiveChat from "./LiveChat";
 
 const WatchPage = () => {
   const [searchParams] = useSearchParams(); // searchParams is a hook that returns a tuple of the search params and a function to update the search params
@@ -16,8 +17,9 @@ const WatchPage = () => {
   }, []);
 
   return (
-    <div className="flex flex-col">
-    <div className="px-5">
+    <div className="flex flex-col w-full">
+    <div className="px-5 flex">
+      <div>
       <iframe
         width="1200"
         height="675"
@@ -28,6 +30,10 @@ const WatchPage = () => {
         referrerpolicy="strict-origin-when-cross-origin"
         allowFullScreen
       ></iframe>
+      </div>
+      <div className="w-full">
+        <LiveChat />
+      </div>
     </div>
     <CommentsContainer />
     </div>

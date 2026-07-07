@@ -24,3 +24,6 @@ yarn-error.log*
 
 .env
 /.vscode
+
+# local work-in-progress archives (not pushed to GitHub)
+/archived
